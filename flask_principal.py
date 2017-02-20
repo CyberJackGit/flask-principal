@@ -12,7 +12,7 @@
 
 from __future__ import with_statement
 
-__version__ = '0.3.5'
+__version__ = '0.4.1+atbay'
 
 import sys
 
@@ -99,7 +99,7 @@ TypeNeed.__doc__ = """A need with the method preset to `"type"`."""
 
 
 ActionNeed = partial(Need, 'action')
-ActionNeed.__doc__ = """A need with the method preset to `"action"`."""
+TypeNeed.__doc__ = """A need with the method preset to `"action"`."""
 
 
 ItemNeed = namedtuple('ItemNeed', ['method', 'value', 'type'])
@@ -118,7 +118,7 @@ are.
 """
 
 
-class PermissionDenied(RuntimeError):
+class PermissionDenied(Exception):
     """Permission denied to the resource"""
 
 
@@ -204,7 +204,9 @@ class IdentityContext(object):
         # check the permission here
         if not self.can():
             if self.http_exception:
-                abort(self.http_exception, self.permission)
+                # flask checks that the exception message matches the exception, if
+                # not it raises an AssertionError. So we drop the message
+                abort(self.http_exception)  # , self.permission)
             raise PermissionDenied(self.permission)
 
     def __exit__(self, *args):
@@ -482,5 +484,5 @@ class Principal(object):
     def _is_static_route(self):
         return (
             self.skip_static and
-            (self._static_path and request.path.startswith(self._static_path))
+            request.path.startswith(self._static_path)
         )
